@@ -4,6 +4,7 @@ import FormAddFriend from "./components/FormAddFriend";
 import FormSplitBill from "./components/FormSplitBill";
 import FriendList from "./components/FriendList";
 import Button from "./components/Button";
+import Heading from "./components/Heading";
 
 export default function App() {
   const [showAddFriendForm, setShowAddFriendForm] = useState(false);
@@ -35,34 +36,37 @@ export default function App() {
     setSelectedFriend(null);
   }
   return (
-    <div className="app">
-      <div className="sidebar">
-        <FriendList
-          friends={friends}
-          onSelection={handleSelection}
-          selectedFriend={selectedFriend}
-        />
+    <>
+      <Heading />
+      <div className="app">
+        <div className="sidebar">
+          <FriendList
+            friends={friends}
+            onSelection={handleSelection}
+            selectedFriend={selectedFriend}
+          />
 
-        {showAddFriendForm && (
-          <FormAddFriend
-            onAddNewFriend={handleAddNewFriend}
+          {showAddFriendForm && (
+            <FormAddFriend
+              onAddNewFriend={handleAddNewFriend}
+              error={error}
+              handleError={setError}
+            />
+          )}
+
+          <Button onClick={handleAddFriendForm}>
+            {showAddFriendForm ? "Close" : "Add friend"}
+          </Button>
+        </div>
+        {selectedFriend && (
+          <FormSplitBill
+            selectedFriend={selectedFriend}
+            onSplitBill={handleSplitBill}
             error={error}
             handleError={setError}
           />
         )}
-
-        <Button onClick={handleAddFriendForm}>
-          {showAddFriendForm ? "Close" : "Add friend"}
-        </Button>
       </div>
-      {selectedFriend && (
-        <FormSplitBill
-          selectedFriend={selectedFriend}
-          onSplitBill={handleSplitBill}
-          error={error}
-          handleError={setError}
-        />
-      )}
-    </div>
+    </>
   );
 }
