@@ -26,6 +26,7 @@ export default function App() {
   const [showAddFriendForm, setShowAddFriendForm] = useState(false);
   const [friends, setFriends] = useState(initialFriends);
   const [selectedFriend, setSelectedFriend] = useState(null);
+  const [error, setError] = useState("");
 
   function handleAddFriendForm() {
     setShowAddFriendForm((show) => !show);
@@ -60,7 +61,11 @@ export default function App() {
         />
 
         {showAddFriendForm && (
-          <FormAddFriend onAddNewFriend={handleAddNewFriend} />
+          <FormAddFriend
+            onAddNewFriend={handleAddNewFriend}
+            error={error}
+            handleError={setError}
+          />
         )}
 
         <Button onClick={handleAddFriendForm}>
@@ -71,6 +76,8 @@ export default function App() {
         <FormSplitBill
           selectedFriend={selectedFriend}
           onSplitBill={handleSplitBill}
+          error={error}
+          handleError={setError}
         />
       )}
     </div>
@@ -116,12 +123,15 @@ function Friend({ friend, onSelection, selectedFriend }) {
   );
 }
 
-function FormAddFriend({ onAddNewFriend }) {
+function FormAddFriend({ onAddNewFriend, error, handleError }) {
   const [name, setName] = useState("");
   const [image, setImage] = useState("https://i.pravatar.cc/48");
   function handleSubmit(e) {
     e.preventDefault();
-    if (!name || !image) return;
+    if (!name || !image) {
+      handleError("Please fill the required fields.");
+      return;
+    }
     const id = crypto.randomUUID();
     const newFriend = {
       userId: id,
@@ -139,18 +149,24 @@ function FormAddFriend({ onAddNewFriend }) {
       <input
         type="text"
         value={name}
-        onChange={(e) =>
+        onChange={(e) => {
           setName(
             e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1)
-          )
-        }
+          );
+          handleError("");
+        }}
       />
       <label>🌄 Image URL</label>
       <input
         type="text"
         value={image}
-        onChange={(e) => setImage(e.target.value)}
+        onChange={(e) => {
+          setImage(e.target.value);
+          handleError("");
+        }}
       />
+      {error && <p className="error-msg">{error}</p>}
+
       <Button>Add</Button>
     </form>
   );
@@ -163,14 +179,18 @@ function Button({ children, onClick }) {
     </button>
   );
 }
-function FormSplitBill({ selectedFriend, onSplitBill }) {
+function FormSplitBill({ selectedFriend, onSplitBill, error, handleError }) {
   const [bill, setBill] = useState("");
   const [userExpense, setUserExpense] = useState("");
   const [whoIsPaying, setWhoIsPaying] = useState("user");
   const friendExpense = bill ? bill - userExpense : "";
   function handleSubmit(e) {
     e.preventDefault();
-    if (!bill || !userExpense) return;
+    if (!bill || !userExpense) {
+      handleError("Please enter valid values for the bill and your expense.");
+      return;
+    }
+    handleError("");
     onSplitBill(whoIsPaying === "user" ? friendExpense : -userExpense);
   }
   return (
@@ -183,7 +203,11 @@ function FormSplitBill({ selectedFriend, onSplitBill }) {
         onChange={(e) => {
           const value = e.target.value.trim();
           const numericValue = Number(value);
-          if (value === "" || isNaN(numericValue)) return;
+          if (numericValue < 0 || isNaN(numericValue)) {
+            handleError("Please enter a valid number and it must be positive.");
+            return;
+          }
+          handleError("");
           setBill(numericValue);
         }}
       />
@@ -194,7 +218,15 @@ function FormSplitBill({ selectedFriend, onSplitBill }) {
         onChange={(e) => {
           const value = e.target.value.trim();
           const numericValue = Number(value);
-          if (value === "" || isNaN(numericValue)) return;
+          if (isNaN(numericValue)) {
+            handleError("Please enter a valid number.");
+            return;
+          }
+          if (numericValue < 0 || numericValue > bill) {
+            handleError("Value must be between 0 and the total bill.");
+            return;
+          }
+          handleError("");
           setUserExpense(numericValue > bill ? userExpense : numericValue);
         }}
       />
@@ -208,6 +240,7 @@ function FormSplitBill({ selectedFriend, onSplitBill }) {
         <option value="user">You</option>
         <option value="friend">{selectedFriend.name}</option>
       </select>
+      {error && <p className="error-msg">{error}</p>}
       <Button>Split bill</Button>
     </form>
   );

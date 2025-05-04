@@ -175,3 +175,8 @@ form h2 {
   object-fit: cover;
   object-position: top;
 }
+
+.error-msg {
+  color: red;
+  font-size: 14px;
+}
